@@ -90,6 +90,7 @@ const scene=new THREE.Scene(); scene.background=new THREE.Color(0x050a0d); scene
 const camera=new THREE.PerspectiveCamera(72,innerWidth/innerHeight,.05,500); camera.position.set(0,1.7,8);
 const renderer=new THREE.WebGLRenderer({antialias:true}); renderer.setPixelRatio(Math.min(devicePixelRatio,1.8)); renderer.shadowMap.enabled=true; renderer.outputColorSpace=THREE.SRGBColorSpace; game.appendChild(renderer.domElement);
 const controls=new PointerLockControls(camera,document.body);
+let mobileMode = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
 const hemi=new THREE.HemisphereLight(0x91a8b9,0x120b08,1.15); scene.add(hemi);
 const moon=new THREE.DirectionalLight(0x8da9c2,2.3); moon.position.set(-35,45,15); moon.castShadow=true; scene.add(moon);
 const red=new THREE.PointLight(0xff2a12,18,25); red.position.set(5,4,-18); scene.add(red);
@@ -116,8 +117,14 @@ addEventListener('keydown',e=>{keys[e.code]=true;if(e.code==='KeyR')reload();if(
 addEventListener('keyup',e=>keys[e.code]=false);
 addEventListener('mousedown',()=>{if(started&&!paused){if(!controls.isLocked)controls.lock();else shoot()}});
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
-$('#start').onclick=()=>{try{started=true;menu.classList.add('hidden');game.classList.remove('hidden');health=100;energy=100;ammo=mag;wave=1;kills=0;zombies.splice(0);spawnWave();sync();say('اللعبة بدأت — اضغط داخل الشاشة للبدء');}catch(err){started=false;menu.classList.remove('hidden');game.classList.add('hidden');alert('تعذر تشغيل اللعبة: '+err.message)}};
-game.addEventListener('click',()=>{if(started&&!paused&&!controls.isLocked)controls.lock()});
+$('#start').onclick=()=>{try{
+ started=true; paused=false; health=100; energy=100; ammo=mag; wave=1; kills=0;
+ menu.classList.add('hidden'); game.classList.remove('hidden'); pause.classList.add('hidden');
+ zombies.splice(0); spawnWave(); sync();
+ if(mobileMode){ controls.unlock(); say('اللعبة بدأت — استخدم الدائرة اليمنى للنظر'); }
+ else { say('اللعبة بدأت — اضغط داخل الشاشة للبدء'); }
+}catch(err){console.error(err);started=false;menu.classList.remove('hidden');game.classList.add('hidden');alert('تعذر تشغيل اللعبة: '+err.message)}};
+game.addEventListener('click',e=>{if(started&&!paused&&!mobileMode&&!controls.isLocked)controls.lock()});
 window.addEventListener('error',e=>{if(started)alert('خطأ في اللعبة: '+e.message)});
 $('#resume').onclick=()=>{paused=false;pause.classList.add('hidden');setTimeout(()=>controls.lock(),50)};
 $('#back').onclick=()=>{paused=false;started=false;pause.classList.add('hidden');game.classList.add('hidden');menu.classList.remove('hidden');controls.unlock()};
