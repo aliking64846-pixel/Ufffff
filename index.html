@@ -115,8 +115,10 @@ addEventListener('keydown',e=>{keys[e.code]=true;if(e.code==='KeyR')reload();if(
 addEventListener('keyup',e=>keys[e.code]=false);
 addEventListener('mousedown',()=>{if(started&&!paused){if(!controls.isLocked)controls.lock();else shoot()}});
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
-$('#start').onclick=()=>{started=true;menu.classList.add('hidden');game.classList.remove('hidden');health=100;energy=100;ammo=mag;wave=1;kills=0;spawnWave();sync();controls.lock()};
-$('#resume').onclick=()=>{paused=false;pause.classList.add('hidden');controls.lock()};
+$('#start').onclick=()=>{try{started=true;menu.classList.add('hidden');game.classList.remove('hidden');health=100;energy=100;ammo=mag;wave=1;kills=0;zombies.splice(0);spawnWave();sync();say('اللعبة بدأت — اضغط داخل الشاشة للبدء');}catch(err){started=false;menu.classList.remove('hidden');game.classList.add('hidden');alert('تعذر تشغيل اللعبة: '+err.message)}};
+game.addEventListener('click',()=>{if(started&&!paused&&!controls.isLocked)controls.lock()});
+window.addEventListener('error',e=>{if(started)alert('خطأ في اللعبة: '+e.message)});
+$('#resume').onclick=()=>{paused=false;pause.classList.add('hidden');setTimeout(()=>controls.lock(),50)};
 $('#back').onclick=()=>{paused=false;started=false;pause.classList.add('hidden');game.classList.add('hidden');menu.classList.remove('hidden');controls.unlock()};
 $('#settings').onclick=()=>alert('الإعدادات جاهزة لاحقاً: الصوت، الحساسية، الجودة.');
 $('#achievements').onclick=()=>alert('🏆 الإنجازات\n\nأول قتيل • صياد الليل • الناجي • موجة 10');
