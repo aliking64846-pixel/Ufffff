@@ -80,7 +80,6 @@ button{font:inherit;color:#fff;cursor:pointer}
 <div id="pause" class="hidden"><div class="panel"><h2>اللعبة متوقفة</h2><button id="resume">متابعة</button><button id="back">العودة للقائمة</button></div></div>
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js';
-import {PointerLockControls} from 'https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/controls/PointerLockControls.js';
 
 const $=s=>document.querySelector(s);
 const menu=$('#menu'),game=$('#game'),pause=$('#pause');
@@ -89,8 +88,15 @@ const keys={},zombies=[],pickups=[],bullets=[];
 const scene=new THREE.Scene(); scene.background=new THREE.Color(0x050a0d); scene.fog=new THREE.FogExp2(0x071014,.026);
 const camera=new THREE.PerspectiveCamera(72,innerWidth/innerHeight,.05,500); camera.position.set(0,1.7,8);
 const renderer=new THREE.WebGLRenderer({antialias:true}); renderer.setPixelRatio(Math.min(devicePixelRatio,1.8)); renderer.shadowMap.enabled=true; renderer.outputColorSpace=THREE.SRGBColorSpace; game.appendChild(renderer.domElement);
-const controls=new PointerLockControls(camera,document.body);
 let mobileMode = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+const controls={
+  isLocked:false,
+  lock(){this.isLocked=true},
+  unlock(){this.isLocked=false},
+  moveForward(d){camera.translateZ(-d)},
+  moveRight(d){camera.translateX(d)}
+};
+let desktopYaw=0,desktopPitch=0,mouseLook=false;
 const hemi=new THREE.HemisphereLight(0x91a8b9,0x120b08,1.15); scene.add(hemi);
 const moon=new THREE.DirectionalLight(0x8da9c2,2.3); moon.position.set(-35,45,15); moon.castShadow=true; scene.add(moon);
 const red=new THREE.PointLight(0xff2a12,18,25); red.position.set(5,4,-18); scene.add(red);
@@ -115,18 +121,25 @@ function move(dt){if(!controls.isLocked||paused)return;let speed=8;if(keys.Shift
 function updateZombies(dt){for(const z of [...zombies]){const d=z.position.distanceTo(camera.position);if(d<55){z.lookAt(camera.position.x,0,camera.position.z);if(d>1.8)z.translateZ(z.userData.speed*dt);else{z.userData.attack-=dt;if(z.userData.attack<=0){z.userData.attack=.65;damage(5)}}}}if(zombies.length===0&&started&&!paused){wave++;spawnWave()}}
 addEventListener('keydown',e=>{keys[e.code]=true;if(e.code==='KeyR')reload();if(e.code==='Escape'&&started){paused=true;pause.classList.remove('hidden');controls.unlock()}});
 addEventListener('keyup',e=>keys[e.code]=false);
-addEventListener('mousedown',()=>{if(started&&!paused){if(!controls.isLocked)controls.lock();else shoot()}});
+addEventListener('mousedown',()=>{if(started&&!paused){if(mobileMode) shoot(); else if(!controls.isLocked) controls.lock(); else shoot()}});
+addEventListener('mousemove',e=>{
+  if(!started||paused||mobileMode||!controls.isLocked)return;
+  desktopYaw-=e.movementX*0.0025; desktopPitch-=e.movementY*0.0025;
+  desktopPitch=Math.max(-1.45,Math.min(1.45,desktopPitch));
+  camera.rotation.order='YXZ'; camera.rotation.y=desktopYaw; camera.rotation.x=desktopPitch;
+});
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
 $('#start').onclick=()=>{try{
  started=true; paused=false; health=100; energy=100; ammo=mag; wave=1; kills=0;
  menu.classList.add('hidden'); game.classList.remove('hidden'); pause.classList.add('hidden');
  zombies.splice(0); spawnWave(); sync();
- if(mobileMode){ controls.unlock(); say('اللعبة بدأت — استخدم الدائرة اليمنى للنظر'); }
+ if(mobileMode){ controls.lock(); yaw=camera.rotation.y; pitch=camera.rotation.x; say('اللعبة بدأت — استخدم الدائرة اليمنى للنظر'); }
  else { say('اللعبة بدأت — اضغط داخل الشاشة للبدء'); }
 }catch(err){console.error(err);started=false;menu.classList.remove('hidden');game.classList.add('hidden');alert('تعذر تشغيل اللعبة: '+err.message)}};
 game.addEventListener('click',e=>{if(started&&!paused&&!mobileMode&&!controls.isLocked)controls.lock()});
-window.addEventListener('error',e=>{if(started)alert('خطأ في اللعبة: '+e.message)});
-$('#resume').onclick=()=>{paused=false;pause.classList.add('hidden');setTimeout(()=>controls.lock(),50)};
+window.addEventListener('error',e=>{console.error(e);if(started)alert('خطأ في اللعبة: '+e.message)});
+window.addEventListener('unhandledrejection',e=>{console.error(e);if(started)alert('خطأ في اللعبة: '+(e.reason?.message||e.reason))});
+$('#resume').onclick=()=>{paused=false;pause.classList.add('hidden');controls.lock()};
 $('#back').onclick=()=>{paused=false;started=false;pause.classList.add('hidden');game.classList.add('hidden');menu.classList.remove('hidden');controls.unlock()};
 $('#settings').onclick=()=>alert('الإعدادات جاهزة لاحقاً: الصوت، الحساسية، الجودة.');
 $('#achievements').onclick=()=>alert('🏆 الإنجازات\n\nأول قتيل • صياد الليل • الناجي • موجة 10');
