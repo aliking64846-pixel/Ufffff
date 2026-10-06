@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>ZOMBIE SURVIVAL — بقاء الزومبي</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#050609;color:#fff;font-family:Tahoma,Arial,sans-serif}
+body{touch-action:none}.screen{position:fixed;inset:0}.hidden{display:none!important}
+#menu{background:radial-gradient(circle at 70% 25%,#24364a 0,#101722 25%,#050608 68%);overflow:hidden}
+#menu:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.94) 0%,rgba(0,0,0,.66) 37%,rgba(0,0,0,.1) 72%),radial-gradient(circle at 75% 70%,rgba(255,70,15,.22),transparent 35%);pointer-events:none}
+.city{position:absolute;inset:20% 0 0;background:linear-gradient(180deg,transparent,#07080a 75%),repeating-linear-gradient(90deg,transparent 0 80px,rgba(100,110,120,.1) 82px 90px);opacity:.8}
+.moon{position:absolute;right:25%;top:8%;width:150px;height:150px;border-radius:50%;background:#c8d5df;box-shadow:0 0 45px #9fb7c8;opacity:.75}
+.menu-content{position:absolute;left:7%;top:7%;width:min(440px,86vw);text-align:left}
+.logo{font-family:Impact,Arial Black,sans-serif;font-size:clamp(60px,8vw,104px);line-height:.8;letter-spacing:2px;color:#eee;text-shadow:5px 6px 0 #111,0 0 20px #000;transform:skew(-5deg)}
+.logo b{display:block;color:#e4141b;font-size:.66em;font-style:italic;text-shadow:4px 4px 0 #250000}
+.tag{font-size:18px;text-align:center;margin:18px 0 28px;color:#ddd;text-shadow:0 2px 4px #000}
+button{font:inherit;color:#fff;cursor:pointer}
+.menu-btn{width:100%;height:66px;margin:7px 0;border:1px solid #56606a;border-radius:12px;background:linear-gradient(#30353b,#12161b);box-shadow:0 6px 12px #000,inset 0 0 0 1px #111;font-size:22px;font-weight:bold;text-shadow:0 2px #000;position:relative}
+.menu-btn:before{content:"";position:absolute;inset:0;border-radius:12px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent);opacity:.4}
+.menu-btn.primary{background:linear-gradient(#c71b20,#62080c);border:2px solid #ff3b3f;box-shadow:0 0 18px #e20d18,0 6px 15px #000}
+.icon{display:inline-block;margin-left:15px;font-size:25px}
+.hud-top{position:absolute;top:18px;right:20px;display:flex;gap:12px;z-index:20}
+.hud-box{min-width:145px;padding:10px 18px;border:1px solid #48515c;border-radius:12px;background:rgba(8,12,17,.88);box-shadow:0 5px 15px #000;font-weight:bold}
+.hud-box span{color:#ffbf24;font-size:20px;margin-left:8px}
+#game{background:#111}
+#game canvas{display:block;width:100%;height:100%}
+.cross{position:absolute;left:50%;top:50%;width:20px;height:20px;transform:translate(-50%,-50%);pointer-events:none;z-index:5}
+.cross:before,.cross:after{content:"";position:absolute;background:#fff;box-shadow:0 0 4px #000}.cross:before{width:2px;height:20px;left:9px}.cross:after{height:2px;width:20px;top:9px}
+#gameHud{position:absolute;inset:0;pointer-events:none}
+.stats{position:absolute;left:18px;bottom:18px;width:250px}
+.bar{height:18px;background:#101217;border:1px solid #66707a;border-radius:8px;margin:6px 0;overflow:hidden}.bar i{display:block;height:100%;background:#c91d24;width:100%}.bar.ammo i{background:#dcae25}
+.weapon{position:absolute;right:22px;bottom:18px;font-size:18px;text-align:right;text-shadow:0 2px 4px #000}.weapon strong{font-size:34px}
+#message{position:absolute;left:50%;top:16%;transform:translateX(-50%);padding:12px 24px;background:rgba(0,0,0,.65);border:1px solid #e11;color:#fff;border-radius:8px;font-weight:bold;opacity:0;transition:.25s}
+#message.show{opacity:1}
+#pause{position:absolute;inset:0;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;z-index:30}
+.panel{width:min(420px,88vw);background:linear-gradient(#1e242b,#080b0e);border:1px solid #6d737a;border-radius:16px;padding:28px;text-align:center;box-shadow:0 20px 70px #000}
+.panel h2{color:#e21b22;margin-top:0}.panel button{width:100%;padding:14px;margin:6px 0;border-radius:10px;background:#20262c;border:1px solid #667}
+.tip{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.55);padding:8px 15px;border-radius:8px;color:#ddd}
+#mobile{display:none;position:absolute;inset:0;z-index:10;pointer-events:none}
+.stick{position:absolute;bottom:30px;width:130px;height:130px;border:2px solid #ffffff33;border-radius:50%;background:#ffffff08;pointer-events:auto}.stick.left{left:25px}.stick.right{right:25px}
+.knob{position:absolute;width:52px;height:52px;left:37px;top:37px;border-radius:50%;background:#ffffff22;border:1px solid #fff5}
+@media(max-width:800px){.menu-content{left:5%;top:5%;width:90%;text-align:center}.logo{font-size:64px}.moon{right:5%;width:90px;height:90px}.menu-btn{height:58px}.hud-top{right:8px;top:8px}.hud-box{min-width:105px;padding:7px 10px;font-size:13px}.tip{bottom:175px}.stats{bottom:15px;width:190px}#mobile{display:block}}
+</style>
+</head>
+<body>
+<section id="menu" class="screen">
+<div class="city"></div><div class="moon"></div>
+<div class="hud-top"><div class="hud-box">🪙 <span id="coins">0</span></div><div class="hud-box">⭐ <span id="stars">0</span></div></div>
+<div class="menu-content">
+<div class="logo">ZOMBIE<b>SURVIVAL</b></div>
+<div class="tag">النجاة ليست خياراً.. بل هي الحياة</div>
+<button class="menu-btn primary" id="start"><span class="icon">▶</span>ابدأ اللعبة</button>
+<button class="menu-btn" id="settings"><span class="icon">⚙</span>الإعدادات</button>
+<button class="menu-btn" id="achievements"><span class="icon">♛</span>الإنجازات</button>
+<button class="menu-btn" id="instructions"><span class="icon">🎮</span>تعليمات</button>
+<div style="margin-top:25px;color:#aaa">v1.0.0 • أول نموذج قابل للعب</div>
+</div></section>
+<section id="game" class="screen hidden">
+<div class="hud-top"><div class="hud-box">🪙 <span id="gcoins">0</span></div><div class="hud-box">⭐ <span id="gstars">0</span></div></div>
+<div class="cross"></div><div id="message">اضغط إطلاق</div>
+<div id="gameHud"><div class="stats">❤️ الصحة <div class="bar"><i id="health"></i></div>🔋 طاقة <div class="bar ammo"><i id="energy"></i></div></div><div class="weapon">السلاح: <b>RIFLE</b><br><strong><span id="ammo">30</span> / ∞</strong></div><div class="tip">WASD للحركة • الفأرة للنظر • انقر للإطلاق • ESC إيقاف</div></div>
+<div id="mobile"><div class="stick left"><div class="knob"></div></div><div class="stick right"><div class="knob"></div></div></div>
+</section>
+<div id="pause" class="hidden"><div class="panel"><h2>اللعبة متوقفة</h2><button id="resume">متابعة</button><button id="back">العودة للقائمة</button></div></div>
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js';
+import {PointerLockControls} from 'https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/controls/PointerLockControls.js';
+
+const menu=document.querySelector('#menu'),game=document.querySelector('#game'),pause=document.querySelector('#pause');
+const start=document.querySelector('#start'),back=document.querySelector('#back'),resume=document.querySelector('#resume');
+let coins=0,stars=0,health=100,energy=100,ammo=30,started=false,paused=false;
+function sync(){for(const id of ['coins','gcoins'])document.getElementById(id).textContent=coins;for(const id of ['stars','gstars'])document.getElementById(id).textContent=stars;document.querySelector('#health').style.width=health+'%';document.querySelector('#energy').style.width=energy+'%';document.querySelector('#ammo').textContent=ammo}
+function say(t){const m=document.querySelector('#message');m.textContent=t;m.classList.add('show');clearTimeout(say.t);say.t=setTimeout(()=>m.classList.remove('show'),1300)}
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x07101a);scene.fog=new THREE.FogExp2(0x07101a,.035);
+const camera=new THREE.PerspectiveCamera(72,innerWidth/innerHeight,.05,500);camera.position.set(0,1.7,8);
+const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=true;game.appendChild(renderer.domElement);
+const controls=new PointerLockControls(camera,document.body);
+const hemi=new THREE.HemisphereLight(0x9fb7d0,0x16100d,1.5);scene.add(hemi);
+const moonLight=new THREE.DirectionalLight(0x9bb7d5,2.2);moonLight.position.set(-30,40,10);moonLight.castShadow=true;scene.add(moonLight);
+const fireLight=new THREE.PointLight(0xff4b18,20,28);fireLight.position.set(4,3,-10);scene.add(fireLight);
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(300,300),new THREE.MeshStandardMaterial({color:0x171819,roughness:1}));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
+function box(x,y,z,sx,sy,sz,c=0x24272a){const m=new THREE.Mesh(new THREE.BoxGeometry(sx,sy,sz),new THREE.MeshStandardMaterial({color:c,roughness:1}));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;scene.add(m);return m}
+for(let i=0;i<35;i++){const x=(Math.random()-.5)*120,z=-Math.random()*100-8,h=5+Math.random()*18;box(x,h/2,z,4+Math.random()*7,h,4+Math.random()*7,0x20252a)}
+for(let i=0;i<24;i++){const x=(Math.random()-.5)*90,z=(Math.random()-.5)*90;box(x,1,z,1+Math.random()*2,2,1+Math.random()*2,0x34302b)}
+function zombie(x,z){const g=new THREE.Group();const mat=new THREE.MeshStandardMaterial({color:0x4c6350});const dark=new THREE.MeshStandardMaterial({color:0x17191b});
+let body=new THREE.Mesh(new THREE.BoxGeometry(1.0,1.6,.55),dark);body.position.y=1.25;g.add(body);
+let head=new THREE.Mesh(new THREE.SphereGeometry(.42,12,10),mat);head.position.y=2.35;g.add(head);
+let a=new THREE.Mesh(new THREE.BoxGeometry(.22,1.35,.22),dark);a.position.set(.68,1.3,0);a.rotation.z=-.2;g.add(a);let b=a.clone();b.position.x=-.68;b.rotation.z=.2;g.add(b);
+g.position.set(x,0,z);scene.add(g);return g}
+const zombies=[];for(let i=0;i<12;i++)zombies.push(zombie((Math.random()-.5)*50,-15-Math.random()*55));
+const keys={};addEventListener('keydown',e=>{keys[e.code]=true;if(e.code==='Escape'&&started){paused=true;pause.classList.remove('hidden');controls.unlock()}});addEventListener('keyup',e=>keys[e.code]=false);
+addEventListener('mousedown',()=>{if(started&&!paused){if(!controls.isLocked)controls.lock();else shoot()}});
+function shoot(){if(ammo<=0){say('لا يوجد ذخيرة');return}ammo--;sync();const ray=new THREE.Raycaster();ray.setFromCamera(new THREE.Vector2(0,0),camera);const hit=ray.intersectObjects(zombies,true)[0];if(hit){let z=hit.object;while(z.parent&&!zombies.includes(z))z=z.parent;const idx=zombies.indexOf(z);if(idx>=0){scene.remove(z);zombies.splice(idx,1);coins+=10;stars++;say('تم القضاء على الزومبي +10');sync()}}}
+function move(dt){if(!controls.isLocked||paused)return;const speed=8*dt;if(keys.KeyW)controls.moveForward(speed);if(keys.KeyS)controls.moveForward(-speed);if(keys.KeyA)controls.moveRight(-speed);if(keys.KeyD)controls.moveRight(speed);camera.position.y=1.7;camera.position.x=Math.max(-58,Math.min(58,camera.position.x));camera.position.z=Math.max(-105,Math.min(12,camera.position.z))}
+let last=performance.now();function loop(now){requestAnimationFrame(loop);const dt=Math.min(.05,(now-last)/1000);last=now;move(dt);for(const z of zombies){const d=z.position.distanceTo(camera.position);if(d<20){z.lookAt(camera.position.x,0,z.position.z);if(d>2)z.translateZ(1.2*dt);else {health-=8*dt;if(health<=0){health=100;camera.position.set(0,1.7,8);say('سقطت! عُدت إلى نقطة البداية')}}}}sync();renderer.render(scene,camera)}loop(performance.now());
+function resize(){camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)}addEventListener('resize',resize);resize();
+start.onclick=()=>{started=true;menu.classList.add('hidden');game.classList.remove('hidden');sync();say('المنطقة الخطرة بدأت');controls.lock()};
+resume.onclick=()=>{paused=false;pause.classList.add('hidden');controls.lock()};
+back.onclick=()=>{paused=false;started=false;pause.classList.add('hidden');game.classList.add('hidden');menu.classList.remove('hidden');controls.unlock()};
+document.querySelector('#settings').onclick=()=>alert('الإعدادات: الصوت والتحكم وحساسية النظر — ستضاف في الإصدار القادم.');
+document.querySelector('#achievements').onclick=()=>alert('🏆 الإنجازات\n\nأول قتيل — 10 عملات\nصياد الليل — 25 قتيل\nالناجي — 100 قتيل');
+document.querySelector('#instructions').onclick=()=>alert('🎮 التحكم\nW A S D للحركة\nالفأرة للنظر\nالنقر للإطلاق\nESC للإيقاف');
+</script>
+</body></html>
