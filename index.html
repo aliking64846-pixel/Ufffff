@@ -75,7 +75,7 @@ button{font:inherit;color:#fff;cursor:pointer}
 <div class="hud-top"><div class="hud-box">🪙 <span id="gcoins">0</span></div><div class="hud-box">⭐ <span id="gstars">0</span></div></div>
 <div class="cross"></div><div id="message">اضغط إطلاق</div>
 <div id="damage"></div><div id="hitmarker"></div><div id="wave">الموجة 1</div><div id="objective">اقضِ على الزومبي وابقَ حيًا</div><div id="killfeed"></div><div id="reload"><div class="reloadbar"></div></div><div id="vignette"></div><div id="gameHud"><div class="stats">❤️ الصحة <div class="bar"><i id="health"></i></div>🔋 طاقة <div class="bar ammo"><i id="energy"></i></div></div><div class="weapon">السلاح: <b>RIFLE</b><br><strong><span id="ammo">30</span> / ∞</strong></div><div class="tip">WASD للحركة • الفأرة للنظر • انقر للإطلاق • ESC إيقاف</div></div>
-<div id="mobile"><div class="stick left"><div class="knob"></div></div><div class="stick right"><div class="knob"></div></div></div>
+<div id="mobile"><div class="stick left"><div class="knob"></div></div><div class="stick right look-stick"><div class="knob"></div></div></div>
 </section>
 <div id="pause" class="hidden"><div class="panel"><h2>اللعبة متوقفة</h2><button id="resume">متابعة</button><button id="back">العودة للقائمة</button></div></div>
 <script type="module">
@@ -128,6 +128,30 @@ const fire=document.createElement('button');fire.className='mBtn fire';fire.text
 const rb=document.createElement('button');rb.className='mBtn reload';rb.textContent='↻';rb.type='button';$('#mobile').appendChild(rb);rb.addEventListener('pointerdown',e=>{e.preventDefault();reload()});
 const sb=document.createElement('button');sb.className='mBtn sprint';sb.textContent='⚡';sb.type='button';$('#mobile').appendChild(sb);sb.addEventListener('pointerdown',e=>{keys.ShiftLeft=true});sb.addEventListener('pointerup',()=>keys.ShiftLeft=false);sb.addEventListener('pointercancel',()=>keys.ShiftLeft=false);
 const left=$('.stick.left'),knob=left.querySelector('.knob');let drag=false;left.addEventListener('pointerdown',e=>{drag=true;left.setPointerCapture(e.pointerId)});left.addEventListener('pointerup',()=>{drag=false;knob.style.transform='translate(0,0)';keys.KeyW=keys.KeyS=keys.KeyA=keys.KeyD=false});left.addEventListener('pointermove',e=>{if(!drag)return;const r=left.getBoundingClientRect(),x=e.clientX-(r.left+r.width/2),y=e.clientY-(r.top+r.height/2),mx=Math.max(-40,Math.min(40,x)),my=Math.max(-40,Math.min(40,y));knob.style.transform='translate('+mx+'px,'+my+'px)';keys.KeyA=mx<-15;keys.KeyD=mx>15;keys.KeyW=my<-15;keys.KeyS=my>15});
-let last=performance.now();function loop(now){requestAnimationFrame(loop);const dt=Math.min(.05,(now-last)/1000);last=now;move(dt);updateZombies(dt);$('#wave').textContent='الموجة '+wave+' • '+zombies.length+' زومبي';sync();renderer.render(scene,camera)}loop(performance.now());renderer.setSize(innerWidth,innerHeight);
+
+// MOBILE TOUCH CAMERA — 360° LOOK
+let touchLookId=null,lastTouchX=0,lastTouchY=0,yaw=0,pitch=0;
+const lookStick=document.querySelector('.look-stick'),lookKnob=lookStick.querySelector('.knob');
+lookStick.addEventListener('pointerdown',e=>{
+ e.preventDefault(); touchLookId=e.pointerId; lastTouchX=e.clientX; lastTouchY=e.clientY;
+ lookStick.setPointerCapture(e.pointerId);
+});
+lookStick.addEventListener('pointermove',e=>{
+ if(e.pointerId!==touchLookId)return;
+ e.preventDefault();
+ const dx=e.clientX-lastTouchX,dy=e.clientY-lastTouchY;
+ lastTouchX=e.clientX;lastTouchY=e.clientY;
+ yaw-=dx*0.006; pitch-=dy*0.006;
+ pitch=Math.max(-1.45,Math.min(1.45,pitch));
+ camera.rotation.order='YXZ';
+ camera.rotation.y=yaw; camera.rotation.x=pitch;
+ const r=lookStick.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;
+ const kx=Math.max(-38,Math.min(38,e.clientX-cx)),ky=Math.max(-38,Math.min(38,e.clientY-cy));
+ lookKnob.style.transform='translate('+kx+'px,'+ky+'px)';
+});
+function resetLook(e){if(e&&e.pointerId!==touchLookId)return;touchLookId=null;lookKnob.style.transform='translate(0,0)';}
+lookStick.addEventListener('pointerup',resetLook);lookStick.addEventListener('pointercancel',resetLook);
+function applyMobileCamera(){if(innerWidth<=800){camera.rotation.order='YXZ';camera.rotation.y=yaw;camera.rotation.x=pitch}}
+let last=performance.now();function loop(now){requestAnimationFrame(loop);const dt=Math.min(.05,(now-last)/1000);last=now;move(dt);applyMobileCamera();updateZombies(dt);$('#wave').textContent='الموجة '+wave+' • '+zombies.length+' زومبي';sync();renderer.render(scene,camera)}loop(performance.now());renderer.setSize(innerWidth,innerHeight);
 </script>
 </body></html>
