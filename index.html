@@ -58,7 +58,8 @@ button{font:inherit;color:#fff;cursor:pointer}
 
 </style>
 </head>
-<body>
+<body><div id="boot" style="position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;background:#050609;color:#fff;font:bold 20px Tahoma;text-align:center;padding:30px">جارٍ تشغيل اللعبة...<br><small style="color:#aaa">إذا تأخر التشغيل سيظهر سبب المشكلة هنا</small></div>
+
 <section id="menu" class="screen">
 <div class="city"></div><div class="moon"></div>
 <div class="hud-top"><div class="hud-box">🪙 <span id="coins">0</span></div><div class="hud-box">⭐ <span id="stars">0</span></div></div>
@@ -129,15 +130,15 @@ addEventListener('mousemove',e=>{
   camera.rotation.order='YXZ'; camera.rotation.y=desktopYaw; camera.rotation.x=desktopPitch;
 });
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
-$('#start').onclick=()=>{try{
- started=true; paused=false; health=100; energy=100; ammo=mag; wave=1; kills=0;
+$('#start').onclick=()=>{try{$('#boot').style.display='flex';
+ if(typeof THREE==='undefined') throw new Error('محرك 3D لم يتم تحميله. تحقق من اتصال الإنترنت ثم أعد فتح اللعبة.'); started=true; paused=false; health=100; energy=100; ammo=mag; wave=1; kills=0;
  menu.classList.add('hidden'); game.classList.remove('hidden'); pause.classList.add('hidden');
- zombies.splice(0); spawnWave(); sync();
+ zombies.splice(0); spawnWave(); sync(); $('#boot').style.display='none';
  if(mobileMode){ controls.lock(); yaw=camera.rotation.y; pitch=camera.rotation.x; say('اللعبة بدأت — استخدم الدائرة اليمنى للنظر'); }
  else { say('اللعبة بدأت — اضغط داخل الشاشة للبدء'); }
-}catch(err){console.error(err);started=false;menu.classList.remove('hidden');game.classList.add('hidden');alert('تعذر تشغيل اللعبة: '+err.message)}};
+}catch(err){console.error(err);started=false;menu.classList.remove('hidden');game.classList.add('hidden');$('#boot').style.display='none';alert('تعذر تشغيل اللعبة: '+err.message)}};
 game.addEventListener('click',e=>{if(started&&!paused&&!mobileMode&&!controls.isLocked)controls.lock()});
-window.addEventListener('error',e=>{console.error(e);if(started)alert('خطأ في اللعبة: '+e.message)});
+window.addEventListener('error',e=>{console.error(e);$('#boot').style.display='none';if(started)alert('خطأ في اللعبة: '+e.message)});
 window.addEventListener('unhandledrejection',e=>{console.error(e);if(started)alert('خطأ في اللعبة: '+(e.reason?.message||e.reason))});
 $('#resume').onclick=()=>{paused=false;pause.classList.add('hidden');controls.lock()};
 $('#back').onclick=()=>{paused=false;started=false;pause.classList.add('hidden');game.classList.add('hidden');menu.classList.remove('hidden');controls.unlock()};
