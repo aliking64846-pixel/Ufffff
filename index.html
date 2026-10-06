@@ -60,7 +60,7 @@ button{font:inherit;color:#fff;cursor:pointer}
 </head>
 <body><div id="boot" style="position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;background:#050609;color:#fff;font:bold 20px Tahoma;text-align:center;padding:30px">جارٍ تشغيل اللعبة...<br><small style="color:#aaa">إذا تأخر التشغيل سيظهر سبب المشكلة هنا</small></div>
 
-<section id="menu" class="screen">
+<section id="menu" class="screen hidden">
 <div class="city"></div><div class="moon"></div>
 <div class="hud-top"><div class="hud-box">🪙 <span id="coins">0</span></div><div class="hud-box">⭐ <span id="stars">0</span></div></div>
 <div class="menu-content">
@@ -72,7 +72,7 @@ button{font:inherit;color:#fff;cursor:pointer}
 <button class="menu-btn" id="instructions"><span class="icon">🎮</span>تعليمات</button>
 <div style="margin-top:25px;color:#aaa">v1.0.0 • أول نموذج قابل للعب</div>
 </div></section>
-<section id="game" class="screen hidden">
+<section id="game" class="screen">
 <div class="hud-top"><div class="hud-box">🪙 <span id="gcoins">0</span></div><div class="hud-box">⭐ <span id="gstars">0</span></div></div>
 <div class="cross"></div><div id="message">اضغط إطلاق</div>
 <div id="damage"></div><div id="hitmarker"></div><div id="wave">الموجة 1</div><div id="objective">اقضِ على الزومبي وابقَ حيًا</div><div id="killfeed"></div><div id="reload"><div class="reloadbar"></div></div><div id="vignette"></div><div id="gameHud"><div class="stats">❤️ الصحة <div class="bar"><i id="health"></i></div>🔋 طاقة <div class="bar ammo"><i id="energy"></i></div></div><div class="weapon">السلاح: <b>RIFLE</b><br><strong><span id="ammo">30</span> / ∞</strong></div><div class="tip">WASD للحركة • الفأرة للنظر • انقر للإطلاق • ESC إيقاف</div></div>
@@ -130,7 +130,7 @@ addEventListener('mousemove',e=>{
   camera.rotation.order='YXZ'; camera.rotation.y=desktopYaw; camera.rotation.x=desktopPitch;
 });
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
-$('#start').onclick=()=>{try{$('#boot').style.display='flex';
+function startGame(){try{$('#boot').style.display='flex';
  if(typeof THREE==='undefined') throw new Error('محرك 3D لم يتم تحميله. تحقق من اتصال الإنترنت ثم أعد فتح اللعبة.'); started=true; paused=false; health=100; energy=100; ammo=mag; wave=1; kills=0;
  menu.classList.add('hidden'); game.classList.remove('hidden'); pause.classList.add('hidden');
  zombies.splice(0); spawnWave(); sync(); $('#boot').style.display='none';
@@ -140,6 +140,7 @@ $('#start').onclick=()=>{try{$('#boot').style.display='flex';
 game.addEventListener('click',e=>{if(started&&!paused&&!mobileMode&&!controls.isLocked)controls.lock()});
 window.addEventListener('error',e=>{console.error(e);$('#boot').style.display='none';if(started)alert('خطأ في اللعبة: '+e.message)});
 window.addEventListener('unhandledrejection',e=>{console.error(e);if(started)alert('خطأ في اللعبة: '+(e.reason?.message||e.reason))});
+const startButton=$('#start'); if(startButton) startButton.onclick=startGame; startGame();
 $('#resume').onclick=()=>{paused=false;pause.classList.add('hidden');controls.lock()};
 $('#back').onclick=()=>{paused=false;started=false;pause.classList.add('hidden');game.classList.add('hidden');menu.classList.remove('hidden');controls.unlock()};
 $('#settings').onclick=()=>alert('الإعدادات جاهزة لاحقاً: الصوت، الحساسية، الجودة.');
