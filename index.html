@@ -233,15 +233,17 @@ function initTamana3D(){
   const head=new THREE.Group();head.position.set(0,1.55,0);root.add(head);
   part(head,new THREE.SphereGeometry(.48,32,24),cyan,[0,0,0],[.79,1,.72]);
   part(head,new THREE.BoxGeometry(.48,.16,.12),dark,[0,-.24,.29]);
+  const mouth=sphere(head,bright,[0,-.24,.365],[.105,.012,.018]);
   part(head,new THREE.BoxGeometry(.54,.07,.08),bright,[0,-.12,.31]);
-  for(const x of [-.19,.19]){sphere(head,bright,[x,.04,.325],[.09,.045,.035]);sphere(head,glass,[x,.04,.36],[.035,.025,.018])}
+  const eyeGlows=[];
+  for(const x of [-.19,.19]){sphere(head,bright,[x,.04,.325],[.09,.045,.035]);eyeGlows.push(sphere(head,glass,[x,.04,.36],[.035,.025,.018]))}
   part(head,new THREE.BoxGeometry(.16,.035,.05),bright,[0,.2,.3]);
   for(const x of [-.43,.43]){sphere(head,bright,[x,-.03,0],[.12,.2,.18]);sphere(head,glass,[x,-.03,.05],[.08,.12,.1])}
   // Chest, reactor and segmented armor
   part(root,new THREE.BoxGeometry(1.08,1.05,.55),dark,[0,.35,0]);
   part(root,new THREE.BoxGeometry(.94,.78,.54),cyan,[0,.37,.02]);
   part(root,new THREE.BoxGeometry(.63,.14,.08),bright,[0,.73,.31]);
-  sphere(root,bright,[0,.38,.31],[.19,.19,.07]);sphere(root,glass,[0,.38,.37],[.105,.105,.035]);
+  const reactor=sphere(root,bright,[0,.38,.31],[.19,.19,.07]);sphere(root,glass,[0,.38,.37],[.105,.105,.035]);
   for(const x of [-.36,.36]){part(root,new THREE.BoxGeometry(.12,.45,.09),dark,[x,.35,.31]);part(root,new THREE.BoxGeometry(.06,.25,.04),bright,[x,.35,.37])}
   part(root,new THREE.CylinderGeometry(.18,.22,.28,20),dark,[0,-.32,0]);
   part(root,new THREE.BoxGeometry(.76,.32,.4),cyan,[0,-.55,0]);
@@ -279,9 +281,14 @@ function initTamana3D(){
   host.classList.add('three-ready');
   const clock=new THREE.Clock(); // TAMANA cinematic animation system
   function animate(){requestAnimationFrame(animate);const t=clock.getElapsedTime();px+=(targetX-px)*.035;py+=(targetY-py)*.035;
-   root.position.y=Math.sin(t*1.4)*.055;root.rotation.y=py+Math.sin(t*.42)*.12;root.rotation.x=px+Math.sin(t*.8)*.025;
-   head.rotation.y=py*.55+Math.sin(t*.75)*.07;head.rotation.x=px*.35+Math.sin(t*1.1)*.025;
-   arms.forEach(({arm,side},i)=>{arm.rotation.z=side*(.08+Math.sin(t*1.35+i)*.045);arm.rotation.x=Math.sin(t*1.1+i*2)*.035});
+   const talking=host.classList.contains('talking'),listening=host.classList.contains('listening'),thinking=host.classList.contains('thinking');
+   const talk=talking?1:0,listen=listening?1:0,think=thinking?1:0;
+   root.position.y=Math.sin(t*1.4)*.055+talk*Math.sin(t*8)*.025;root.rotation.y=py+Math.sin(t*.42)*.12+talk*Math.sin(t*2.2)*.035;root.rotation.x=px+Math.sin(t*.8)*.025;
+   head.rotation.y=py*.55+Math.sin(t*.75)*.07+talk*Math.sin(t*2.8)*.055;head.rotation.x=px*.35+Math.sin(t*1.1)*.025+listen*Math.sin(t*1.8)*.025;
+   mouth.scale.y=.012+talk*(.018+Math.abs(Math.sin(t*10))*.055);mouth.material.emissiveIntensity=1.1+talk*2.2;
+   eyeGlows.forEach((eye,i)=>{eye.material.emissiveIntensity=1.2+listen*2.8+think*1.2+Math.sin(t*2+i)*.25});
+   reactor.material.emissiveIntensity=1.2+think*2.4+talk*(.8+Math.sin(t*8)*.6);
+   arms.forEach(({arm,side},i)=>{arm.rotation.z=side*(.08+Math.sin(t*1.35+i)*.045+talk*(.16+Math.sin(t*4+i)*.08)+listen*.045);arm.rotation.x=Math.sin(t*1.1+i*2)*.035+talk*Math.sin(t*4+i)*.07});
    legs.forEach(({leg,side},i)=>{leg.rotation.x=Math.sin(t*.9+i*Math.PI)*.018});
    particles.children.forEach(p=>{p.position.x=Math.cos(p.userData.a+t*.16)*p.userData.r;p.position.z=Math.sin(p.userData.a+t*.16)*.35;p.position.y=p.userData.y+Math.sin(t*p.userData.s+p.userData.a)*.06});
    renderer.render(scene,camera)
