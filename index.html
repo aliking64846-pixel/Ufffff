@@ -35,6 +35,7 @@ button,input,textarea{font:inherit}button{cursor:pointer;color:inherit}button:fo
 .live-tag{border:1px solid #0e6387;border-radius:20px;padding:4px 9px;color:var(--green)!important;background:#032235}
 .holo{position:relative;width:min(340px,75%);height:355px;display:grid;place-items:center;isolation:isolate;animation:holoFloat 5s ease-in-out infinite;transform-origin:50% 72%}.holo svg{transform-origin:50% 55%;animation:avatarPulse 4s ease-in-out infinite}.holo.talking svg{animation:avatarTalk .42s ease-in-out infinite alternate;filter:drop-shadow(0 0 18px #36dcff99)}.holo.listening{filter:brightness(1.22) drop-shadow(0 0 18px #16cfff88)}.holo.thinking svg{animation:avatarThink .8s ease-in-out infinite alternate}.holo.talking .orbit{border-color:#7ff8ff;box-shadow:0 0 26px #00dfff55,inset 0 0 17px #00bfff2a}
 .holo svg{width:100%;height:100%;overflow:visible;filter:drop-shadow(0 0 11px #13caff55)}
+.holo #t3dCanvas{position:absolute;inset:0;width:100%;height:100%;z-index:2;display:block;touch-action:pan-y;filter:drop-shadow(0 0 12px #00bfff22)}.holo.three-ready svg{display:none}.holo-caption{z-index:3;pointer-events:none}.holo .orbit{z-index:1}.holo .scan{z-index:3;pointer-events:none}.holo.three-ready{perspective:900px}
 .orbit{position:absolute;border:1px solid #30dfff66;border-radius:50%;width:290px;height:82px;bottom:25px;transform:rotate(-13deg);box-shadow:0 0 18px #00bfff1a,inset 0 0 17px #00bfff16;animation:orbit 8s linear infinite}
 .orbit.o2{width:245px;height:67px;bottom:35px;transform:rotate(17deg);animation-direction:reverse;opacity:.65}
 .orbit.o3{width:210px;height:53px;bottom:45px;transform:rotate(70deg);opacity:.32;animation-duration:14s}
@@ -125,6 +126,7 @@ button,input,textarea{font:inherit}button{cursor:pointer;color:inherit}button:fo
     <div class="stage-side right"><div class="mini-readout">حالة النظام<b>مستقر 99.9%</b></div><div class="mini-readout">الواجهة<b>هولوغرام نشط</b></div></div>
     <div class="stage-side left"><div class="mini-readout">وضع المساعد<b id="modeReadout">مساعد شخصي</b></div><div class="mini-readout">الاتصال<b>محلي / تجريبي</b></div></div>
     <div class="holo">
+      <canvas id="t3dCanvas" aria-label="شخصية تامانا ثلاثية الأبعاد متحركة"></canvas>
       <div class="orbit"></div><div class="orbit o2"></div><div class="orbit o3"></div><div class="scan"></div>
       <svg viewBox="0 0 300 350" role="img" aria-label="رسم هولوغرام رقمي لشخصية مساعد افتراضي">
         <defs>
@@ -199,10 +201,95 @@ button,input,textarea{font:inherit}button{cursor:pointer;color:inherit}button:fo
 </aside>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r160/three.min.js" defer></script>
 <script>
 const $=s=>document.querySelector(s);
 const messages=$('#messages'),promptBox=$('#prompt'),speech=$('#pageSubtitle'),toast=$('#toast');
 let toastTimer;
+function initTamana3D(){
+ const canvas=$('#t3dCanvas'),host=$('.holo');
+ if(!canvas||!window.THREE)return;
+ try{
+  const THREE=window.THREE,scene=new THREE.Scene();
+  const renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.7));
+  renderer.setSize(host.clientWidth,host.clientHeight,false);
+  renderer.outputColorSpace=THREE.SRGBColorSpace;
+  renderer.setClearColor(0x000000,0);
+  const camera=new THREE.PerspectiveCamera(32,host.clientWidth/host.clientHeight,.1,100);
+  camera.position.set(0,.15,8.8);
+  scene.add(new THREE.HemisphereLight(0x9cefff,0x04152b,2.1));
+  const key=new THREE.DirectionalLight(0x8af4ff,3.2);key.position.set(3,4,5);scene.add(key);
+  const rim=new THREE.PointLight(0x087dff,8,12);rim.position.set(-3,1,2);scene.add(rim);
+  const cyan=new THREE.MeshStandardMaterial({color:0x36dfff,metalness:.78,roughness:.24,emissive:0x063c61,emissiveIntensity:1.2});
+  const bright=new THREE.MeshStandardMaterial({color:0xb8fbff,metalness:.65,roughness:.2,emissive:0x27cfff,emissiveIntensity:1.6});
+  const dark=new THREE.MeshStandardMaterial({color:0x071d36,metalness:.88,roughness:.28,emissive:0x06294a,emissiveIntensity:.8});
+  const glass=new THREE.MeshStandardMaterial({color:0x0b4c7c,metalness:.6,roughness:.12,emissive:0x0a9edb,emissiveIntensity:1.7});
+  const root=new THREE.Group();scene.add(root);
+  function part(parent,geo,mat,pos,scale){const m=new THREE.Mesh(geo,mat);m.position.set(...pos);if(scale)m.scale.set(...scale);parent.add(m);return m}
+  function sphere(parent,mat,pos,scale){return part(parent,new THREE.SphereGeometry(1,24,18),mat,pos,scale)}
+  function link(parent,mat,a,b,r1,r2){const A=new THREE.Vector3(...a),B=new THREE.Vector3(...b),d=new THREE.Vector3().subVectors(B,A);const m=part(parent,new THREE.CylinderGeometry(r2,r1,d.length(),16),mat,[(a[0]+b[0])/2,(a[1]+b[1])/2,(a[2]+b[2])/2]);m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.normalize());return m}
+  // Head and luminous face
+  const head=new THREE.Group();head.position.set(0,1.55,0);root.add(head);
+  part(head,new THREE.SphereGeometry(.48,32,24),cyan,[0,0,0],[.79,1,.72]);
+  part(head,new THREE.BoxGeometry(.48,.16,.12),dark,[0,-.24,.29]);
+  part(head,new THREE.BoxGeometry(.54,.07,.08),bright,[0,-.12,.31]);
+  for(const x of [-.19,.19]){sphere(head,bright,[x,.04,.325],[.09,.045,.035]);sphere(head,glass,[x,.04,.36],[.035,.025,.018])}
+  part(head,new THREE.BoxGeometry(.16,.035,.05),bright,[0,.2,.3]);
+  for(const x of [-.43,.43]){sphere(head,bright,[x,-.03,0],[.12,.2,.18]);sphere(head,glass,[x,-.03,.05],[.08,.12,.1])}
+  // Chest, reactor and segmented armor
+  part(root,new THREE.BoxGeometry(1.08,1.05,.55),dark,[0,.35,0]);
+  part(root,new THREE.BoxGeometry(.94,.78,.54),cyan,[0,.37,.02]);
+  part(root,new THREE.BoxGeometry(.63,.14,.08),bright,[0,.73,.31]);
+  sphere(root,bright,[0,.38,.31],[.19,.19,.07]);sphere(root,glass,[0,.38,.37],[.105,.105,.035]);
+  for(const x of [-.36,.36]){part(root,new THREE.BoxGeometry(.12,.45,.09),dark,[x,.35,.31]);part(root,new THREE.BoxGeometry(.06,.25,.04),bright,[x,.35,.37])}
+  part(root,new THREE.CylinderGeometry(.18,.22,.28,20),dark,[0,-.32,0]);
+  part(root,new THREE.BoxGeometry(.76,.32,.4),cyan,[0,-.55,0]);
+  // Animated shoulders and arms
+  const arms=[];
+  for(const side of [-1,1]){
+   const arm=new THREE.Group();arm.position.set(side*.67,.72,0);root.add(arm);arms.push({arm,side});
+   sphere(arm,bright,[0,0,0],[.2,.21,.2]);
+   link(arm,cyan,[0,-.08,0],[side*.06,-.53,.02],.14,.12);
+   sphere(arm,bright,[side*.06,-.55,.02],[.14,.14,.14]);
+   link(arm,dark,[side*.06,-.59,.02],[side*.02,-.96,.08],.12,.09);
+   part(arm,new THREE.BoxGeometry(.22,.2,.22),cyan,[side*.02,-1.04,.08]);
+   for(let f=0;f<3;f++)link(arm,bright,[side*.02+(f-1)*.055,-1.12,.1],[side*.02+(f-1)*.06,-1.22,.11],.025,.018);
+  }
+  // Legs with glowing joints
+  const legs=[];
+  for(const side of [-1,1]){
+   const leg=new THREE.Group();leg.position.set(side*.24,-.66,0);root.add(leg);legs.push({leg,side});
+   link(leg,cyan,[0,0,0],[side*.025,-.52,0],.16,.12);
+   sphere(leg,bright,[side*.025,-.54,0],[.14,.13,.14]);
+   link(leg,dark,[side*.025,-.58,0],[0,-1.02,.04],.12,.09);
+   part(leg,new THREE.BoxGeometry(.27,.16,.42),cyan,[0,-1.1,.12]);
+   part(leg,new THREE.BoxGeometry(.17,.035,.05),bright,[0,-1.04,.34]);
+  }
+  // Floating hologram particles
+  const particles=new THREE.Group();scene.add(particles);
+  for(let i=0;i<36;i++){const a=i*2.399,r=1.15+(i%7)*.075,y=-1.7+(i%12)*.3;const p=sphere(particles,i%4===0?bright:glass,[Math.cos(a)*r,y,Math.sin(a)*.35],[.018,.018,.018]);p.userData={a,r,y,s:i%3+1}}
+  let px=0,py=0,targetX=0,targetY=0,lastW=0,lastH=0;
+  function point(e){const rect=host.getBoundingClientRect();targetY=((e.clientX-rect.left)/rect.width-.5)*.36;targetX=-((e.clientY-rect.top)/rect.height-.5)*.2}
+  host.addEventListener('pointermove',point,{passive:true});
+  host.addEventListener('pointerleave',()=>{targetX=0;targetY=0},{passive:true});
+  host.addEventListener('touchmove',e=>{if(e.touches[0])point(e.touches[0])},{passive:true});
+  function resize(){const w=host.clientWidth,h=host.clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();lastW=w;lastH=h}
+  if('ResizeObserver'in window)new ResizeObserver(resize).observe(host);else window.addEventListener('resize',resize);
+  host.classList.add('three-ready');
+  const clock=new THREE.Clock();
+  function animate(){requestAnimationFrame(animate);const t=clock.getElapsedTime();px+=(targetX-px)*.035;py+=(targetY-py)*.035;
+   root.position.y=Math.sin(t*1.4)*.055;root.rotation.y=py+Math.sin(t*.42)*.12;root.rotation.x=px+Math.sin(t*.8)*.025;
+   head.rotation.y=py*.55+Math.sin(t*.75)*.07;head.rotation.x=px*.35+Math.sin(t*1.1)*.025;
+   arms.forEach(({arm,side},i)=>{arm.rotation.z=side*(.08+Math.sin(t*1.35+i)*.045);arm.rotation.x=Math.sin(t*1.1+i*2)*.035});
+   legs.forEach(({leg,side},i)=>{leg.rotation.x=Math.sin(t*.9+i*Math.PI)*.018});
+   particles.children.forEach(p=>{p.position.x=Math.cos(p.userData.a+t*.16)*p.userData.r;p.position.z=Math.sin(p.userData.a+t*.16)*.35;p.position.y=p.userData.y+Math.sin(t*p.userData.s+p.userData.a)*.06});
+   renderer.render(scene,camera)
+  }
+  animate();
+ }catch(err){console.warn('TAMANA 3D fallback:',err)}
+}
+window.addEventListener('load',()=>{if(window.THREE)initTamana3D();else setTimeout(()=>{if(window.THREE)initTamana3D()},900)},{once:true});
 function sayToast(text){toast.textContent=text;toast.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>toast.classList.remove('show'),2600)}
 function addMessage(text,who){const el=document.createElement('div');el.className='msg '+who;el.textContent=text;messages.appendChild(el);messages.scrollTop=messages.scrollHeight}\nfunction setHoloMode(mode){const h=$('.holo');h.classList.remove('talking','listening','thinking');if(mode)h.classList.add(mode);const labels={talking:'المساعد يتفاعل',listening:'يستمع الآن',thinking:'يعالج الطلب'};$('#modeReadout').textContent=labels[mode]||'مساعد شخصي';}
 function localReply(q){
