@@ -277,7 +277,7 @@ function initTamana3D(){
   function resize(){const w=host.clientWidth,h=host.clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();lastW=w;lastH=h}
   if('ResizeObserver'in window)new ResizeObserver(resize).observe(host);else window.addEventListener('resize',resize);
   host.classList.add('three-ready');
-  const clock=new THREE.Clock();
+  const clock=new THREE.Clock(); // TAMANA cinematic animation system
   function animate(){requestAnimationFrame(animate);const t=clock.getElapsedTime();px+=(targetX-px)*.035;py+=(targetY-py)*.035;
    root.position.y=Math.sin(t*1.4)*.055;root.rotation.y=py+Math.sin(t*.42)*.12;root.rotation.x=px+Math.sin(t*.8)*.025;
    head.rotation.y=py*.55+Math.sin(t*.75)*.07;head.rotation.x=px*.35+Math.sin(t*1.1)*.025;
