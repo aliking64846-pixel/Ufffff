@@ -210,91 +210,117 @@ function initTamana3D(){
  const canvas=$('#t3dCanvas'),host=$('.holo');
  if(!canvas||!window.THREE)return;
  try{
-  const THREE=window.THREE,scene=new THREE.Scene();
-  const renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true});
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.7));
+  const T=window.THREE,scene=new T.Scene();
+  const renderer=new T.WebGLRenderer({canvas,alpha:true,antialias:true,powerPreference:'low-power'});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));
   renderer.setSize(host.clientWidth,host.clientHeight,false);
-  renderer.outputColorSpace=THREE.SRGBColorSpace;
+  renderer.outputColorSpace=T.SRGBColorSpace;
   renderer.setClearColor(0x000000,0);
-  const camera=new THREE.PerspectiveCamera(32,host.clientWidth/host.clientHeight,.1,100);
-  camera.position.set(0,.15,8.8);
-  scene.add(new THREE.HemisphereLight(0x9cefff,0x04152b,2.1));
-  const key=new THREE.DirectionalLight(0x8af4ff,3.2);key.position.set(3,4,5);scene.add(key);
-  const rim=new THREE.PointLight(0x087dff,8,12);rim.position.set(-3,1,2);scene.add(rim);
-  const cyan=new THREE.MeshStandardMaterial({color:0x36dfff,metalness:.78,roughness:.24,emissive:0x063c61,emissiveIntensity:1.2});
-  const bright=new THREE.MeshStandardMaterial({color:0xb8fbff,metalness:.65,roughness:.2,emissive:0x27cfff,emissiveIntensity:1.6});
-  const dark=new THREE.MeshStandardMaterial({color:0x071d36,metalness:.88,roughness:.28,emissive:0x06294a,emissiveIntensity:.8});
-  const glass=new THREE.MeshStandardMaterial({color:0x0b4c7c,metalness:.6,roughness:.12,emissive:0x0a9edb,emissiveIntensity:1.7});
-  const root=new THREE.Group();scene.add(root);
-  function part(parent,geo,mat,pos,scale){const m=new THREE.Mesh(geo,mat);m.position.set(...pos);if(scale)m.scale.set(...scale);parent.add(m);return m}
-  function sphere(parent,mat,pos,scale){return part(parent,new THREE.SphereGeometry(1,24,18),mat,pos,scale)}
-  function link(parent,mat,a,b,r1,r2){const A=new THREE.Vector3(...a),B=new THREE.Vector3(...b),d=new THREE.Vector3().subVectors(B,A);const m=part(parent,new THREE.CylinderGeometry(r2,r1,d.length(),16),mat,[(a[0]+b[0])/2,(a[1]+b[1])/2,(a[2]+b[2])/2]);m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.normalize());return m}
-  // Head and luminous face
-  const head=new THREE.Group();head.position.set(0,1.55,0);root.add(head);
-  part(head,new THREE.SphereGeometry(.48,32,24),cyan,[0,0,0],[.79,1,.72]);
-  part(head,new THREE.BoxGeometry(.48,.16,.12),dark,[0,-.24,.29]);
-  const mouth=sphere(head,bright,[0,-.24,.365],[.105,.012,.018]);
-  part(head,new THREE.BoxGeometry(.54,.07,.08),bright,[0,-.12,.31]);
-  const eyeGlows=[];
-  for(const x of [-.19,.19]){sphere(head,bright,[x,.04,.325],[.09,.045,.035]);eyeGlows.push(sphere(head,glass,[x,.04,.36],[.035,.025,.018]))}
-  part(head,new THREE.BoxGeometry(.16,.035,.05),bright,[0,.2,.3]);
-  for(const x of [-.43,.43]){sphere(head,bright,[x,-.03,0],[.12,.2,.18]);sphere(head,glass,[x,-.03,.05],[.08,.12,.1])}
-  // Chest, reactor and segmented armor
-  part(root,new THREE.BoxGeometry(1.08,1.05,.55),dark,[0,.35,0]);
-  part(root,new THREE.BoxGeometry(.94,.78,.54),cyan,[0,.37,.02]);
-  part(root,new THREE.BoxGeometry(.63,.14,.08),bright,[0,.73,.31]);
-  const reactor=sphere(root,bright,[0,.38,.31],[.19,.19,.07]);sphere(root,glass,[0,.38,.37],[.105,.105,.035]);
-  for(const x of [-.36,.36]){part(root,new THREE.BoxGeometry(.12,.45,.09),dark,[x,.35,.31]);part(root,new THREE.BoxGeometry(.06,.25,.04),bright,[x,.35,.37])}
-  part(root,new THREE.CylinderGeometry(.18,.22,.28,20),dark,[0,-.32,0]);
-  part(root,new THREE.BoxGeometry(.76,.32,.4),cyan,[0,-.55,0]);
-  // Animated shoulders and arms
-  const arms=[];
-  for(const side of [-1,1]){
-   const arm=new THREE.Group();arm.position.set(side*.67,.72,0);root.add(arm);arms.push({arm,side});
-   sphere(arm,bright,[0,0,0],[.2,.21,.2]);
-   link(arm,cyan,[0,-.08,0],[side*.06,-.53,.02],.14,.12);
-   sphere(arm,bright,[side*.06,-.55,.02],[.14,.14,.14]);
-   link(arm,dark,[side*.06,-.59,.02],[side*.02,-.96,.08],.12,.09);
-   part(arm,new THREE.BoxGeometry(.22,.2,.22),cyan,[side*.02,-1.04,.08]);
-   for(let f=0;f<3;f++)link(arm,bright,[side*.02+(f-1)*.055,-1.12,.1],[side*.02+(f-1)*.06,-1.22,.11],.025,.018);
+  const camera=new T.PerspectiveCamera(30,host.clientWidth/host.clientHeight,.1,100);
+  camera.position.set(0,.1,8.4);
+  scene.add(new T.HemisphereLight(0xd7efff,0x100d18,2.1));
+  const key=new T.DirectionalLight(0xffe1ce,3.1);key.position.set(2.5,4,5);scene.add(key);
+  const fill=new T.PointLight(0x2fbdff,3.2,10);fill.position.set(-3,1.3,2.5);scene.add(fill);
+  const rim=new T.PointLight(0x087dff,5,12);rim.position.set(2,1,-2);scene.add(rim);
+  const skin=new T.MeshPhysicalMaterial({color:0xd9a17f,roughness:.72,metalness:0,clearcoat:.12,clearcoatRoughness:.8});
+  const skinLight=new T.MeshStandardMaterial({color:0xe8b493,roughness:.7});
+  const hairMat=new T.MeshStandardMaterial({color:0x100d13,roughness:.3,metalness:.08});
+  const hairHi=new T.MeshStandardMaterial({color:0x30202b,roughness:.32,metalness:.05});
+  const black=new T.MeshStandardMaterial({color:0x080b12,roughness:.48,metalness:.18});
+  const blackHi=new T.MeshStandardMaterial({color:0x151d2b,roughness:.38,metalness:.28});
+  const blue=new T.MeshStandardMaterial({color:0x1687ff,roughness:.3,metalness:.4,emissive:0x052c5d,emissiveIntensity:.55});
+  const white=new T.MeshStandardMaterial({color:0xf4e9e3,roughness:.45});
+  const iris=new T.MeshStandardMaterial({color:0x347eaa,roughness:.26,metalness:.05,emissive:0x06334c,emissiveIntensity:.2});
+  const pupil=new T.MeshStandardMaterial({color:0x080b11,roughness:.22});
+  const lipMat=new T.MeshStandardMaterial({color:0x8e4f53,roughness:.42});
+  const root=new T.Group();scene.add(root);
+  function mesh(parent,geo,mat,pos,scale){const m=new T.Mesh(geo,mat);m.position.set(...pos);if(scale)m.scale.set(...scale);parent.add(m);return m}
+  function ellipsoid(parent,mat,pos,scale,seg=32){return mesh(parent,new T.SphereGeometry(1,seg,24),mat,pos,scale)}
+  function tube(parent,points,r,mat){const curve=new T.CatmullRomCurve3(points.map(p=>new T.Vector3(...p)));const m=new T.Mesh(new T.TubeGeometry(curve,28,r,7,false),mat);parent.add(m);return m}
+  const body=new T.Group();root.add(body);
+  // Shoulders and fitted black futuristic jacket
+  ellipsoid(body,black,[0,-.55,0],[.86,.88,.43]);
+  ellipsoid(body,blackHi,[0,-.22,.04],[.68,.54,.43]);
+  const lapelL=mesh(body,new T.ConeGeometry(.23,.82,4),blackHi,[-.25,-.28,.39],[1,.65,.22]);lapelL.rotation.z=-.23;lapelL.rotation.y=-.18;
+  const lapelR=mesh(body,new T.ConeGeometry(.23,.82,4),blackHi,[.25,-.28,.39],[1,.65,.22]);lapelR.rotation.z=.23;lapelR.rotation.y=.18;
+  tube(body,[[-.48,-.7,.36],[-.34,-.36,.44],[-.1,-.05,.43]],.012,blue);
+  tube(body,[[.48,-.7,.36],[.34,-.36,.44],[.1,-.05,.43]],.012,blue);
+  mesh(body,new T.BoxGeometry(.08,.62,.045),blue,[0,-.52,.46]);
+  ellipsoid(body,black,[0,.05,0],[.23,.34,.24]); // neck
+  const head=new T.Group();head.position.set(0,.72,0);root.add(head);
+  // Natural face silhouette, cheeks and jaw
+  ellipsoid(head,skin,[0,.18,.02],[.47,.62,.39],40);
+  ellipsoid(head,skinLight,[-.22,-.03,.24],[.18,.19,.13]);
+  ellipsoid(head,skinLight,[.22,-.03,.24],[.18,.19,.13]);
+  ellipsoid(head,skin,[0,-.31,.13],[.29,.2,.25]);
+  // Ears
+  for(const s of [-1,1]){ellipsoid(head,skin,[s*.455,.08,0],[.09,.16,.105]);ellipsoid(head,lipMat,[s*.485,.08,.065],[.025,.07,.035]);}
+  // Nose bridge and soft tip
+  ellipsoid(head,skinLight,[0,.015,.365],[.075,.21,.075]);
+  ellipsoid(head,skin,[0,-.105,.405],[.105,.075,.08]);
+  for(const s of [-1,1])ellipsoid(head,lipMat,[s*.062,-.135,.42],[.022,.018,.016]);
+  // Eyes, pupils, catchlights, eyelids and expressive eyebrows
+  const eyes=[],lids=[],brows=[];
+  for(const s of [-1,1]){
+   ellipsoid(head,white,[s*.19,.16,.327],[.135,.075,.055]);
+   const ir=ellipsoid(head,iris,[s*.19,.16,.375],[.047,.05,.022]);
+   const pu=ellipsoid(head,pupil,[s*.19,.16,.395],[.022,.031,.012]);
+   ellipsoid(head,white,[s*.176,.18,.407],[.012,.013,.008]);
+   const lid=ellipsoid(head,skin,[s*.19,.224,.352],[.14,.018,.058]);lids.push(lid);
+   const brow=tube(head,[[s*.32,.28,.35],[s*.2,.32,.38],[s*.08,.29,.36]],.023,hairMat);brows.push(brow);
+   eyes.push({ir,pu,s});
   }
-  // Legs with glowing joints
-  const legs=[];
-  for(const side of [-1,1]){
-   const leg=new THREE.Group();leg.position.set(side*.24,-.66,0);root.add(leg);legs.push({leg,side});
-   link(leg,cyan,[0,0,0],[side*.025,-.52,0],.16,.12);
-   sphere(leg,bright,[side*.025,-.54,0],[.14,.13,.14]);
-   link(leg,dark,[side*.025,-.58,0],[0,-1.02,.04],.12,.09);
-   part(leg,new THREE.BoxGeometry(.27,.16,.42),cyan,[0,-1.1,.12]);
-   part(leg,new THREE.BoxGeometry(.17,.035,.05),bright,[0,-1.04,.34]);
+  // Lips with a mouth opening that animates during speech
+  ellipsoid(head,lipMat,[0,-.205,.376],[.12,.035,.025]);
+  const mouth=ellipsoid(head,new T.MeshStandardMaterial({color:0x260d17,roughness:.6}),[0,-.2,.398],[.075,.009,.012]);
+  ellipsoid(head,lipMat,[0,-.19,.405],[.077,.014,.014]);
+  // Long dark hair cap and flowing side locks
+  ellipsoid(head,hairMat,[0,.53,-.005],[.49,.37,.405],40);
+  ellipsoid(head,hairMat,[0,.39,.235],[.48,.31,.25],40);
+  const fringe=mesh(head,new T.SphereGeometry(1,32,20),hairMat,[0,.39,.33],[.43,.22,.12]);fringe.rotation.z=.06;
+  // Hair drapes past both shoulders; individually curved locks catch blue rim light
+  for(const s of [-1,1]){
+   const lock=mesh(head,new T.SphereGeometry(1,28,20),hairMat,[s*.43,-.19,-.01],[.16,.76,.19]);lock.rotation.z=-s*.12;
+   ellipsoid(head,hairMat,[s*.43,-.68,-.005],[.17,.3,.18]);
+   tube(head,[[s*.32,.59,.29],[s*.43,.25,.23],[s*.47,-.2,.17],[s*.43,-.62,.12]],.012,hairHi);
+   tube(head,[[s*.4,.49,.31],[s*.5,.12,.23],[s*.51,-.28,.15],[s*.46,-.73,.1]],.008,blue);
   }
-  // Floating hologram particles
-  const particles=new THREE.Group();scene.add(particles);
-  for(let i=0;i<36;i++){const a=i*2.399,r=1.15+(i%7)*.075,y=-1.7+(i%12)*.3;const p=sphere(particles,i%4===0?bright:glass,[Math.cos(a)*r,y,Math.sin(a)*.35],[.018,.018,.018]);p.userData={a,r,y,s:i%3+1}}
-  let px=0,py=0,targetX=0,targetY=0,lastW=0,lastH=0;
-  function point(e){const rect=host.getBoundingClientRect();targetY=((e.clientX-rect.left)/rect.width-.5)*.36;targetX=-((e.clientY-rect.top)/rect.height-.5)*.2}
-  host.addEventListener('pointermove',point,{passive:true});
-  host.addEventListener('pointerleave',()=>{targetX=0;targetY=0},{passive:true});
+  tube(head,[[-.35,.56,.31],[-.18,.68,.36],[0,.65,.37],[.18,.69,.36],[.35,.56,.31]],.014,hairHi);
+  // Tiny earrings and discreet futuristic ear pieces
+  for(const s of [-1,1]){ellipsoid(head,blue,[s*.49,-.02,.05],[.035,.06,.035]);ellipsoid(head,blackHi,[s*.51,-.02,.04],[.023,.04,.023]);}
+  // Soft holographic dust around the shoulders, less visually noisy than the robot model
+  const particles=new T.Group();scene.add(particles);
+  for(let i=0;i<22;i++){const a=i*2.399,r=1.08+(i%5)*.09,y=-1.15+(i%9)*.27;const p=ellipsoid(particles,i%4===0?blue:iris,[Math.cos(a)*r,y,Math.sin(a)*.2],[.012,.012,.012],12);p.userData={a,r,y,s:i%3+1}}
+  let px=0,py=0,targetX=0,targetY=0;
+  function point(e){const rect=host.getBoundingClientRect();targetY=((e.clientX-rect.left)/rect.width-.5)*.28;targetX=-((e.clientY-rect.top)/rect.height-.5)*.16}
+  host.addEventListener('pointermove',point,{passive:true});host.addEventListener('pointerleave',()=>{targetX=0;targetY=0},{passive:true});
   host.addEventListener('touchmove',e=>{if(e.touches[0])point(e.touches[0])},{passive:true});
-  function resize(){const w=host.clientWidth,h=host.clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();lastW=w;lastH=h}
+  function resize(){const w=host.clientWidth,h=host.clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}
   if('ResizeObserver'in window)new ResizeObserver(resize).observe(host);else window.addEventListener('resize',resize);
   host.classList.add('three-ready');
-  const clock=new THREE.Clock(); // TAMANA cinematic animation system
-  function animate(){requestAnimationFrame(animate);const t=clock.getElapsedTime();px+=(targetX-px)*.035;py+=(targetY-py)*.035;
+  const clock=new T.Clock();let nextBlink=2.4,blinkStart=-1;
+  function animate(){
+   requestAnimationFrame(animate);const t=clock.getElapsedTime();px+=(targetX-px)*.035;py+=(targetY-py)*.035;
    const talking=host.classList.contains('talking'),listening=host.classList.contains('listening'),thinking=host.classList.contains('thinking');
    const talk=talking?1:0,listen=listening?1:0,think=thinking?1:0;
-   root.position.y=Math.sin(t*1.4)*.055+talk*Math.sin(t*8)*.025;root.rotation.y=py+Math.sin(t*.42)*.12+talk*Math.sin(t*2.2)*.035;root.rotation.x=px+Math.sin(t*.8)*.025;
-   head.rotation.y=py*.55+Math.sin(t*.75)*.07+talk*Math.sin(t*2.8)*.055;head.rotation.x=px*.35+Math.sin(t*1.1)*.025+listen*Math.sin(t*1.8)*.025;
-   mouth.scale.y=.012+talk*(.018+Math.abs(Math.sin(t*10))*.055);mouth.material.emissiveIntensity=1.1+talk*2.2;
-   eyeGlows.forEach((eye,i)=>{eye.material.emissiveIntensity=1.2+listen*2.8+think*1.2+Math.sin(t*2+i)*.25});
-   reactor.material.emissiveIntensity=1.2+think*2.4+talk*(.8+Math.sin(t*8)*.6);
-   arms.forEach(({arm,side},i)=>{arm.rotation.z=side*(.08+Math.sin(t*1.35+i)*.045+talk*(.16+Math.sin(t*4+i)*.08)+listen*.045);arm.rotation.x=Math.sin(t*1.1+i*2)*.035+talk*Math.sin(t*4+i)*.07});
-   legs.forEach(({leg,side},i)=>{leg.rotation.x=Math.sin(t*.9+i*Math.PI)*.018});
-   particles.children.forEach(p=>{p.position.x=Math.cos(p.userData.a+t*.16)*p.userData.r;p.position.z=Math.sin(p.userData.a+t*.16)*.35;p.position.y=p.userData.y+Math.sin(t*p.userData.s+p.userData.a)*.06});
-   renderer.render(scene,camera)
+   root.position.y=Math.sin(t*1.15)*.025+talk*Math.sin(t*8)*.012;
+   root.rotation.y=py+Math.sin(t*.32)*.045+talk*Math.sin(t*2)*.018;
+   root.rotation.x=px+Math.sin(t*.7)*.018;
+   head.rotation.y=py*.7+Math.sin(t*.55)*.035+talk*Math.sin(t*2.4)*.025;
+   head.rotation.x=px*.35+Math.sin(t*.8)*.018+listen*Math.sin(t*1.7)*.012;
+   body.scale.y=1+Math.sin(t*1.5)*.006;
+   // Natural blinks: close eyelids briefly at irregular intervals
+   if(t>nextBlink){blinkStart=t;nextBlink=t+2.1+Math.abs(Math.sin(t*3.7))*3.6}
+   const blink=blinkStart>=0?Math.max(0,1-Math.abs(t-blinkStart)/.13):0;
+   lids.forEach((lid,i)=>{lid.position.y=.224-.065*blink;lid.scale.y=.018+.065*blink});
+   eyes.forEach(({ir,pu,s},i)=>{ir.position.x=s*.19+Math.sin(t*.65+i)*.006;pu.position.x=ir.position.x;ir.material.emissiveIntensity=.12+listen*.24+think*.12});
+   mouth.scale.y=.009+talk*(.018+Math.abs(Math.sin(t*8.8))*.042);
+   mouth.position.y=-.2-talk*Math.abs(Math.sin(t*8.8))*.018;
+   particles.children.forEach(p=>{p.position.x=Math.cos(p.userData.a+t*.12)*p.userData.r;p.position.z=Math.sin(p.userData.a+t*.12)*.2;p.position.y=p.userData.y+Math.sin(t*p.userData.s+p.userData.a)*.045});
+   renderer.render(scene,camera);
   }
   animate();
- }catch(err){console.warn('TAMANA 3D fallback:',err)}
+ }catch(err){console.warn('TAMANA 3D avatar fallback:',err)}
 }
 window.addEventListener('load',()=>{if(window.THREE)initTamana3D();else setTimeout(()=>{if(window.THREE)initTamana3D()},900)},{once:true});
 function sayToast(text){toast.textContent=text;toast.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>toast.classList.remove('show'),2600)}
